@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <RootNamespace>Jellyfin.Plugin.ClientQuality</RootNamespace>
+        <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- The server supplies these assemblies at runtime; only reference them at compile time. -->
+        <PackageReference Include="Jellyfin.Controller" Version="12.2.0" ExcludeAssets="runtime" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="Configuration\configPage.html" />
+        <EmbeddedResource Include="Configuration\configPage.html" />
+    </ItemGroup>
+
+</Project>

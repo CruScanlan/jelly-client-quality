@@ -1,0 +1,16 @@
+name: "Client Quality"
+guid: "ed175d17-67ec-477c-b27d-75806ba6c214"
+version: 1
+targetAbi: "12.2.0.0"
+framework: "net10.0"
+owner: "cru"
+overview: "Force transcoding or cap bitrate for specific users, client apps or devices."
+description: >
+  Adds dashboard-managed rules that match a user, a client app, a device, or any
+  combination, and either force the server to transcode playback for matching
+  requests or cap their maximum streaming bitrate.
+category: "General"
+artifacts:
+  - "Jellyfin.Plugin.ClientQuality.dll"
+changelog: |-
+  - Initial release: force-transcode and bitrate-cap rules by user, client and device.
