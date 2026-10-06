@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Client Quality</title>
+</head>
+<body>
+<div id="ClientQualityConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
+    <div data-role="content">
+        <div class="content-primary">
+            <form id="ClientQualityConfigForm">
+                <div class="verticalSection">
+                    <h2 class="sectionTitle">Client Quality</h2>
+                    <p>
+                        Each rule matches a user, a client app, a device, or any combination of them. Leave a field on
+                        "Any" to ignore it. Every enabled rule that matches a playback request applies: transcoding is
+                        forced if any of them forces it, and the lowest bitrate cap wins.
+                    </p>
+                    <p class="fieldDescription">
+                        Forcing a transcode needs the user's "Allow video playback that requires transcoding" permission.
+                        Changes apply to the next playback started; they don't affect streams already playing.
+                    </p>
+                </div>
+
+                <div id="ctRules" class="verticalSection"></div>
+
+                <div class="verticalSection">
+                    <button is="emby-button" type="button" id="ctAddRule" class="raised">
+                        <span>Add rule</span>
+                    </button>
+                </div>
+
+                <div>
+                    <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                        <span>Save</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        (function () {
+            const pluginId = 'ed175d17-67ec-477c-b27d-75806ba6c214';
+
+            // Same steps as the web client's quality menu, in bits per second.
+            const bitrates = [
+                [0, 'No cap'],
+                [120000000, '120 Mbps'], [80000000, '80 Mbps'], [60000000, '60 Mbps'], [40000000, '40 Mbps'],
+                [20000000, '20 Mbps'], [15000000, '15 Mbps'], [10000000, '10 Mbps'], [8000000, '8 Mbps'],
+                [6000000, '6 Mbps'], [4000000, '4 Mbps'], [3000000, '3 Mbps'], [1500000, '1.5 Mbps'],
+                [720000, '720 kbps'], [420000, '420 kbps']
+            ];
+
+            const page = document.querySelector('#ClientQualityConfigPage');
+            const rulesContainer = page.querySelector('#ctRules');
+            let users = [];
+            let devices = [];
+
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, c => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                })[c]);
+            }
+
+            function normaliseId(id) {
+                return String(id ?? '').replace(/-/g, '').toLowerCase();
+            }
+
+            function options(items, selected) {
+                // items: [value, label]. Keep a saved value selectable even if it no longer appears in the lists.
+                const list = items.slice();
+                if (selected && !list.some(([value]) => String(value) === String(selected))) {
+                    list.push([selected, selected + ' (not seen)']);
+                }
+                return list.map(([value, label]) =>
+                    `<option value="${escapeHtml(value)}"${String(value) === String(selected) ? ' selected' : ''}>${escapeHtml(label)}</option>`
+                ).join('');
+            }
+
+            function userOptions(selected) {
+                const items = [['', 'Any user']].concat(users.map(u => [normaliseId(u.Id), u.Name]));
+                return options(items, selected ? normaliseId(selected) : '');
+            }
+
+            function clientOptions(selected) {
+                const names = [...new Set(devices.map(d => d.AppName).filter(Boolean))].sort();
+                return options([['', 'Any client']].concat(names.map(n => [n, n])), selected);
+            }
+
+            function deviceOptions(selected) {
+                const items = [['', 'Any device']].concat(devices.map(d => [
+                    d.Id,
+                    [d.Name, d.AppName, d.LastUserName].filter(Boolean).join(' · ')
+                ]));
+                return options(items, selected);
+            }
+
+            function addRuleRow(rule) {
+                const row = document.createElement('div');
+                row.className = 'ctRule paperList';
+                row.style.padding = '1em';
+                row.style.marginBottom = '1em';
+                row.innerHTML = `
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" class="ctEnabled"${rule.Enabled ? ' checked' : ''} />
+                        <span>Enabled</span>
+                    </label>
+                    <div class="selectContainer">
+                        <select is="emby-select" class="ctUser" label="User">${userOptions(rule.UserId)}</select>
+                    </div>
+                    <div class="selectContainer">
+                        <select is="emby-select" class="ctClient" label="Client app">${clientOptions(rule.Client)}</select>
+                    </div>
+                    <div class="selectContainer">
+                        <select is="emby-select" class="ctDevice" label="Device">${deviceOptions(rule.DeviceId)}</select>
+                    </div>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" class="ctForce"${rule.ForceTranscode ? ' checked' : ''} />
+                        <span>Force transcode</span>
+                    </label>
+                    <div class="selectContainer">
+                        <select is="emby-select" class="ctBitrate" label="Max streaming bitrate">${options(bitrates, rule.MaxStreamingBitrate || 0)}</select>
+                    </div>
+                    <button is="emby-button" type="button" class="raised ctRemove"><span>Remove rule</span></button>`;
+                row.querySelector('.ctRemove').addEventListener('click', () => row.remove());
+                rulesContainer.appendChild(row);
+            }
+
+            function readRules() {
+                return [...rulesContainer.querySelectorAll('.ctRule')].map(row => ({
+                    Enabled: row.querySelector('.ctEnabled').checked,
+                    UserId: row.querySelector('.ctUser').value,
+                    Client: row.querySelector('.ctClient').value,
+                    DeviceId: row.querySelector('.ctDevice').value,
+                    ForceTranscode: row.querySelector('.ctForce').checked,
+                    MaxStreamingBitrate: parseInt(row.querySelector('.ctBitrate').value, 10) || 0
+                }));
+            }
+
+            page.addEventListener('pageshow', function () {
+                Dashboard.showLoadingMsg();
+                Promise.all([
+                    ApiClient.getPluginConfiguration(pluginId),
+                    ApiClient.getUsers(),
+                    ApiClient.getJSON(ApiClient.getUrl('ClientQuality/Devices'))
+                ]).then(([config, loadedUsers, loadedDevices]) => {
+                    users = loadedUsers || [];
+                    devices = loadedDevices || [];
+                    rulesContainer.innerHTML = '';
+                    (config.Rules || []).forEach(addRuleRow);
+                }).catch(err => {
+                    console.error('Client Quality: failed to load settings', err);
+                    Dashboard.alert('Failed to load Client Quality settings.');
+                }).finally(() => Dashboard.hideLoadingMsg());
+            });
+
+            page.querySelector('#ctAddRule').addEventListener('click', () => addRuleRow({
+                Enabled: true, UserId: '', Client: '', DeviceId: '', ForceTranscode: true, MaxStreamingBitrate: 0
+            }));
+
+            page.querySelector('#ClientQualityConfigForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const rules = readRules();
+                if (rules.some(r => !r.UserId && !r.Client && !r.DeviceId)) {
+                    Dashboard.alert('Every rule needs at least one of user, client app or device. Rules matching everything are ignored.');
+                    return false;
+                }
+
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(pluginId).then(config => {
+                    config.Rules = rules;
+                    return ApiClient.updatePluginConfiguration(pluginId, config);
+                }).then(Dashboard.processPluginConfigurationUpdateResult);
+                return false;
+            });
+        })();
+    </script>
+</div>
+</body>
+</html>
