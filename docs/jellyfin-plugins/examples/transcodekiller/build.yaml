@@ -1,0 +1,18 @@
+# Source: https://github.com/jellyfin/jellyfin-plugin-transcodekiller/blob/3a5a5034e05892e0c2b1a289f7a69ae761f7a9d8/build.yaml
+# Upstream: jellyfin/jellyfin-plugin-transcodekiller @ 3a5a5034e05892e0c2b1a289f7a69ae761f7a9d8
+# Licence: GPL-3.0 (upstream LICENSE is the GPLv3 text). Copyright (c) the Jellyfin Contributors.
+# Copied verbatim (BOM stripped) for reference only; not compiled in this repo.
+
+name: "Transcode Killer"
+guid: "a0444c3b-fe1c-4258-9e0f-a139fc093949"
+version: 5
+targetAbi: "12.0.0.0"
+framework: "net10.0"
+owner: "jellyfin"
+overview: "Kills transcodes to prevent server overload."
+description: "Kills transcodes above set resolutions to prevent server overload."
+category: "Administration"
+artifacts:
+  - "Jellyfin.Plugin.TranscodeKiller.dll"
+changelog: |-
+  - Unstable: Update to latest Jellyfin preview packages (#13) @crobibero, @jellyfin-bot

@@ -1,0 +1,34 @@
+<!--
+  Source: https://github.com/jellyfin/jellyfin-plugin-transcodekiller/blob/3a5a5034e05892e0c2b1a289f7a69ae761f7a9d8/Jellyfin.Plugin.TranscodeKiller/Jellyfin.Plugin.TranscodeKiller.csproj
+  Upstream: jellyfin/jellyfin-plugin-transcodekiller @ 3a5a5034e05892e0c2b1a289f7a69ae761f7a9d8
+  Licence: GPL-3.0 (upstream LICENSE is the GPLv3 text). Copyright (c) the Jellyfin Contributors.
+  Copied verbatim for reference only; not compiled in this repo.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <Nullable>enable</Nullable>
+        <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+        <CodeAnalysisRuleSet>../jellyfin.ruleset</CodeAnalysisRuleSet>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Jellyfin.Controller" Version="12.*-*" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="SerilogAnalyzer" Version="0.15.0" PrivateAssets="All" />
+        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
+        <PackageReference Include="SmartAnalyzers.MultithreadingAnalyzer" Version="1.1.31" PrivateAssets="All" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="Configuration\config.html" />
+        <EmbeddedResource Include="Configuration\config.html" />
+    </ItemGroup>
+
+
+</Project>

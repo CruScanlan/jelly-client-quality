@@ -1,0 +1,9 @@
+<!--
+  Source: https://github.com/jellyfin/jellyfin-plugin-template/blob/c93225a0a5a76d3843db05b4b5b77fcfc482fba3/Jellyfin.Plugin.Template.slnx
+  Upstream: jellyfin/jellyfin-plugin-template @ c93225a0a5a76d3843db05b4b5b77fcfc482fba3
+  Licence: GPL-3.0 (upstream LICENSE is the GPLv3 text). Copyright (c) the Jellyfin Contributors.
+  Copied verbatim for reference only; not compiled in this repo.
+-->
+<Solution>
+  <Project Path="Jellyfin.Plugin.Template/Jellyfin.Plugin.Template.csproj" />
+</Solution>
