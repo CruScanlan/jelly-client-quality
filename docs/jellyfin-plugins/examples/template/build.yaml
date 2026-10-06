@@ -1,0 +1,21 @@
+# Source: https://github.com/jellyfin/jellyfin-plugin-template/blob/c93225a0a5a76d3843db05b4b5b77fcfc482fba3/build.yaml
+# Upstream: jellyfin/jellyfin-plugin-template @ c93225a0a5a76d3843db05b4b5b77fcfc482fba3
+# Licence: GPL-3.0 (upstream LICENSE is the GPLv3 text). Copyright (c) the Jellyfin Contributors.
+# Copied verbatim (BOM stripped) for reference only; not compiled in this repo.
+
+---
+name: "Template"
+guid: "eb5d7894-8eef-4b36-aa6f-5d124e828ce1"
+version: "1.0.0.0"
+targetAbi: "10.11.0.0"
+framework: "net9.0"
+overview: "Short description about your plugin"
+description: >
+  This is a longer description that can span more than one
+  line and include details about your plugin.
+category: "General"
+owner: "jellyfin"
+artifacts:
+- "Jellyfin.Plugin.Template.dll"
+changelog: >
+  changelog
