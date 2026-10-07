@@ -55,7 +55,7 @@ jobs:
           {
             echo "VERSION=$version"
             echo "TAG=$tag"
-            echo "ZIP=${slug}_${version}.zip"
+            echo "PACKAGE=${slug}_${version}.zip"
           } >> "$GITHUB_ENV"
           echo "Releasing $version as $tag"
 
@@ -70,19 +70,19 @@ jobs:
       - name: Package
         run: |
           # Zip only the files build.yaml lists; the server supplies Jellyfin's own assemblies.
-          jq -r '.artifacts[]' "$RUNNER_TEMP/build.json" > "$RUNNER_TEMP/artifacts.txt"
-          (cd artifacts && zip -X "../$ZIP" -@ < "$RUNNER_TEMP/artifacts.txt")
-          unzip -l "$ZIP"
+          mapfile -t files < <(jq -r '.artifacts[]' "$RUNNER_TEMP/build.json")
+          (cd artifacts && python3 -m zipfile -c "../$PACKAGE" "${files[@]}")
+          python3 -m zipfile -l "$PACKAGE"
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           if gh release view "$TAG" > /dev/null 2>&1; then
-            gh release upload "$TAG" "$ZIP" --clobber
+            gh release upload "$TAG" "$PACKAGE" --clobber
           else
             jq -r '.changelog // ""' "$RUNNER_TEMP/build.json" > "$RUNNER_TEMP/notes.md"
-            gh release create "$TAG" "$ZIP" --target "$GITHUB_SHA" \
+            gh release create "$TAG" "$PACKAGE" --target "$GITHUB_SHA" \
               --title "$(jq -r '.name' "$RUNNER_TEMP/build.json") $VERSION" \
               --notes-file "$RUNNER_TEMP/notes.md"
           fi
@@ -99,9 +99,9 @@ jobs:
           python3 scripts/update_manifest.py \
             --manifest "$dir/manifest.json" \
             --build-json "$RUNNER_TEMP/build.json" \
-            --zip "$ZIP" \
+            --zip "$PACKAGE" \
             --version "$VERSION" \
-            --source-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$TAG/$ZIP"
+            --source-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$TAG/$PACKAGE"
 
           cd "$dir"
           git add manifest.json
