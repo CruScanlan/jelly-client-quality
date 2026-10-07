@@ -57,43 +57,65 @@
             let users = [];
             let devices = [];
 
-            function escapeHtml(value) {
-                return String(value ?? '').replace(/[&<>"']/g, c => ({
-                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-                })[c]);
-            }
+            // Note: the dashboard runs this whole file through its translator, which rewrites every
+            // dollar-brace sequence, so this script must not use template literal placeholders.
 
             function normaliseId(id) {
                 return String(id ?? '').replace(/-/g, '').toLowerCase();
             }
 
-            function options(items, selected) {
+            function fillOptions(select, items, selected) {
                 // items: [value, label]. Keep a saved value selectable even if it no longer appears in the lists.
                 const list = items.slice();
                 if (selected && !list.some(([value]) => String(value) === String(selected))) {
                     list.push([selected, selected + ' (not seen)']);
                 }
-                return list.map(([value, label]) =>
-                    `<option value="${escapeHtml(value)}"${String(value) === String(selected) ? ' selected' : ''}>${escapeHtml(label)}</option>`
-                ).join('');
+                list.forEach(([value, label]) => {
+                    const isSelected = String(value) === String(selected);
+                    select.appendChild(new Option(label, value, isSelected, isSelected));
+                });
             }
 
-            function userOptions(selected) {
-                const items = [['', 'Any user']].concat(users.map(u => [normaliseId(u.Id), u.Name]));
-                return options(items, selected ? normaliseId(selected) : '');
+            function userItems() {
+                return [['', 'Any user']].concat(users.map(u => [normaliseId(u.Id), u.Name]));
             }
 
-            function clientOptions(selected) {
+            function clientItems() {
                 const names = [...new Set(devices.map(d => d.AppName).filter(Boolean))].sort();
-                return options([['', 'Any client']].concat(names.map(n => [n, n])), selected);
+                return [['', 'Any client']].concat(names.map(n => [n, n]));
             }
 
-            function deviceOptions(selected) {
-                const items = [['', 'Any device']].concat(devices.map(d => [
+            function deviceItems() {
+                return [['', 'Any device']].concat(devices.map(d => [
                     d.Id,
                     [d.Name, d.AppName, d.LastUserName].filter(Boolean).join(' · ')
                 ]));
-                return options(items, selected);
+            }
+
+            function createCheckbox(className, text, checked) {
+                const label = document.createElement('label');
+                label.className = 'checkboxContainer';
+                const input = document.createElement('input', { is: 'emby-checkbox' });
+                input.setAttribute('is', 'emby-checkbox');
+                input.type = 'checkbox';
+                input.className = className;
+                input.checked = !!checked;
+                const span = document.createElement('span');
+                span.textContent = text;
+                label.append(input, span);
+                return label;
+            }
+
+            function createSelect(className, labelText, items, selected) {
+                const container = document.createElement('div');
+                container.className = 'selectContainer';
+                const select = document.createElement('select', { is: 'emby-select' });
+                select.setAttribute('is', 'emby-select');
+                select.className = className;
+                select.setAttribute('label', labelText);
+                fillOptions(select, items, selected);
+                container.appendChild(select);
+                return container;
             }
 
             function addRuleRow(rule) {
@@ -101,29 +123,22 @@
                 row.className = 'ctRule paperList';
                 row.style.padding = '1em';
                 row.style.marginBottom = '1em';
-                row.innerHTML = `
-                    <label class="checkboxContainer">
-                        <input is="emby-checkbox" type="checkbox" class="ctEnabled"${rule.Enabled ? ' checked' : ''} />
-                        <span>Enabled</span>
-                    </label>
-                    <div class="selectContainer">
-                        <select is="emby-select" class="ctUser" label="User">${userOptions(rule.UserId)}</select>
-                    </div>
-                    <div class="selectContainer">
-                        <select is="emby-select" class="ctClient" label="Client app">${clientOptions(rule.Client)}</select>
-                    </div>
-                    <div class="selectContainer">
-                        <select is="emby-select" class="ctDevice" label="Device">${deviceOptions(rule.DeviceId)}</select>
-                    </div>
-                    <label class="checkboxContainer">
-                        <input is="emby-checkbox" type="checkbox" class="ctForce"${rule.ForceTranscode ? ' checked' : ''} />
-                        <span>Force transcode</span>
-                    </label>
-                    <div class="selectContainer">
-                        <select is="emby-select" class="ctBitrate" label="Max streaming bitrate">${options(bitrates, rule.MaxStreamingBitrate || 0)}</select>
-                    </div>
-                    <button is="emby-button" type="button" class="raised ctRemove"><span>Remove rule</span></button>`;
-                row.querySelector('.ctRemove').addEventListener('click', () => row.remove());
+
+                const remove = document.createElement('button', { is: 'emby-button' });
+                remove.setAttribute('is', 'emby-button');
+                remove.type = 'button';
+                remove.className = 'raised ctRemove';
+                remove.textContent = 'Remove rule';
+                remove.addEventListener('click', () => row.remove());
+
+                row.append(
+                    createCheckbox('ctEnabled', 'Enabled', rule.Enabled),
+                    createSelect('ctUser', 'User', userItems(), rule.UserId ? normaliseId(rule.UserId) : ''),
+                    createSelect('ctClient', 'Client app', clientItems(), rule.Client),
+                    createSelect('ctDevice', 'Device', deviceItems(), rule.DeviceId),
+                    createCheckbox('ctForce', 'Force transcode', rule.ForceTranscode),
+                    createSelect('ctBitrate', 'Max streaming bitrate', bitrates, rule.MaxStreamingBitrate || 0),
+                    remove);
                 rulesContainer.appendChild(row);
             }
 
@@ -143,7 +158,11 @@
                 Promise.all([
                     ApiClient.getPluginConfiguration(pluginId),
                     ApiClient.getUsers(),
-                    ApiClient.getJSON(ApiClient.getUrl('ClientQuality/Devices'))
+                    // Rules for users and clients still work without the device list.
+                    ApiClient.getJSON(ApiClient.getUrl('ClientQuality/Devices')).catch(err => {
+                        console.error('Client Quality: failed to load devices', err);
+                        return [];
+                    })
                 ]).then(([config, loadedUsers, loadedDevices]) => {
                     users = loadedUsers || [];
                     devices = loadedDevices || [];

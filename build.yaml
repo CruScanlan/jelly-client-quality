@@ -13,4 +13,4 @@ category: "General"
 artifacts:
   - "Jellyfin.Plugin.ClientQuality.dll"
 changelog: |-
-  - Initial release: force-transcode and bitrate-cap rules by user, client and device.
+  - Fix the settings page dropdowns (user, client app, device) showing no options.
