@@ -1,0 +1,20 @@
+[
+  {
+    "guid": "ed175d17-67ec-477c-b27d-75806ba6c214",
+    "name": "Client Quality",
+    "description": "Adds dashboard-managed rules that match a user, a client app, a device, or any combination, and either force the server to transcode playback for matching requests or cap their maximum streaming bitrate.",
+    "overview": "Force transcoding or cap bitrate for specific users, client apps or devices.",
+    "owner": "cru",
+    "category": "General",
+    "versions": [
+      {
+        "version": "1.0.0.0",
+        "changelog": "- Initial release: force-transcode and bitrate-cap rules by user, client and device.",
+        "targetAbi": "12.2.0.0",
+        "sourceUrl": "https://github.com/CruScanlan/jelly-client-quality/releases/download/v1.0.0.0/client-quality_1.0.0.0.zip",
+        "checksum": "c7cb889c158f3a5db920600e9a2bf8d6",
+        "timestamp": "2026-10-07T04:01:22Z"
+      }
+    ]
+  }
+]
