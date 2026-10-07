@@ -31,6 +31,17 @@ public class ConfigPageTests
     }
 
     [Fact]
+    public void ConfigPage_CreateElementCalls_DoNotPassOptionsObject()
+    {
+        // The Jellyfin 12.2 dashboard swaps document.createElement for the
+        // webcomponents.js 0.7 (custom elements v0) polyfill, which calls
+        // .toLowerCase() on the second argument. The v1 form
+        // createElement('select', { is: 'emby-select' }) therefore throws; the
+        // string form createElement('select', 'emby-select') must be used.
+        Assert.DoesNotMatch(@"createElement\s*\([^)]*\{", ReadPage());
+    }
+
+    [Fact]
     public void ConfigPage_ReferencesPluginId()
     {
         Assert.Contains(Plugin.PluginId.ToString(), ReadPage());

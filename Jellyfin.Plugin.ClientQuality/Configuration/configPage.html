@@ -59,6 +59,9 @@
 
             // Note: the dashboard runs this whole file through its translator, which rewrites every
             // dollar-brace sequence, so this script must not use template literal placeholders.
+            // The dashboard also replaces document.createElement with the webcomponents.js v0 polyfill,
+            // which takes the "is" type as a string (createElement('select', 'emby-select')), not an
+            // options object, so stick to that form as jellyfin-web does.
 
             function normaliseId(id) {
                 return String(id ?? '').replace(/-/g, '').toLowerCase();
@@ -95,7 +98,7 @@
             function createCheckbox(className, text, checked) {
                 const label = document.createElement('label');
                 label.className = 'checkboxContainer';
-                const input = document.createElement('input', { is: 'emby-checkbox' });
+                const input = document.createElement('input', 'emby-checkbox');
                 input.setAttribute('is', 'emby-checkbox');
                 input.type = 'checkbox';
                 input.className = className;
@@ -109,7 +112,7 @@
             function createSelect(className, labelText, items, selected) {
                 const container = document.createElement('div');
                 container.className = 'selectContainer';
-                const select = document.createElement('select', { is: 'emby-select' });
+                const select = document.createElement('select', 'emby-select');
                 select.setAttribute('is', 'emby-select');
                 select.className = className;
                 select.setAttribute('label', labelText);
@@ -124,7 +127,7 @@
                 row.style.padding = '1em';
                 row.style.marginBottom = '1em';
 
-                const remove = document.createElement('button', { is: 'emby-button' });
+                const remove = document.createElement('button', 'emby-button');
                 remove.setAttribute('is', 'emby-button');
                 remove.type = 'button';
                 remove.className = 'raised ctRemove';
