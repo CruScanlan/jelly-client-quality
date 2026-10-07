@@ -40,13 +40,30 @@ The controllers prefer query arguments over the posted body (`??=`), so the rewr
 - Changes apply to the next playback started.
 - Endpoints are matched by controller, action and parameter name, so a future Jellyfin release that renames them will silently stop the filter working. Recheck on each major upgrade.
 
-## Build and install
+## Install
+
+In Jellyfin, open **Dashboard → Plugins → Repositories**, add a repository with this URL, then install **Client Quality** from the catalog and restart the server:
+
+```
+https://raw.githubusercontent.com/CruScanlan/jelly-client-quality/manifest/manifest.json
+```
+
+The catalog only lists versions whose `targetAbi` is at or below your server version (12.2.0.0 for now).
+
+## Release
+
+1. Update `changelog` in `build.yaml` (it becomes the release notes and the changelog Jellyfin shows), and `targetAbi` if the Jellyfin target changed.
+2. Push a version tag from the commit to release, e.g. `git tag v1.0.1.0 && git push origin v1.0.1.0`. Or run the **Release** workflow from the Actions tab and enter the version.
+
+`.github/workflows/release.yml` then runs the tests, builds the plugin with that version, zips the DLL, attaches the zip to a GitHub release, and adds the version (with its MD5 checksum) to `manifest.json` on the `manifest` branch via `scripts/update_manifest.py`. Versions are four-part; `v1.2` is published as `1.2.0.0`.
+
+## Build locally
 
 ```bash
 dotnet publish Jellyfin.Plugin.ClientQuality -c Release -o artifacts
 ```
 
-Copy `artifacts/Jellyfin.Plugin.ClientQuality.dll` into `<jellyfin data dir>/plugins/ClientQuality_1.0.0.0/` and restart Jellyfin. Packaging for a plugin repository uses `build.yaml` with [JPRM](https://github.com/oddstr13/jellyfin-plugin-repository-manager).
+Or `devenv shell build`. To install by hand, copy `artifacts/Jellyfin.Plugin.ClientQuality.dll` into `<jellyfin data dir>/plugins/ClientQuality_1.0.0.0/` and restart Jellyfin.
 
 ## Licence
 
