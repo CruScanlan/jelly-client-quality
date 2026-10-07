@@ -13,4 +13,4 @@ category: "General"
 artifacts:
   - "Jellyfin.Plugin.ClientQuality.dll"
 changelog: |-
-  - Fix the settings page dropdowns (user, client app, device) showing no options.
+  - Fix "Add rule" doing nothing on the settings page (dashboard createElement polyfill error).
